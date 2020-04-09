@@ -3,26 +3,34 @@ var app = express();
 
 var Twitter = require('twitter');
 var config = require('./config.js');
-var http = require('http');
+var https = require('https');
 var T = new Twitter(config);
 
 // Set up your search parameters
 var options = {
-  host: 'localhost',
-  port: 3000,
-  path: '/chistes?id=1',
-  method: 'GET'
+  hostname: 'covid-193.p.rapidapi.com',
+  port: 443,
+  path: '/statistics?country=Spain',
+  method: 'GET',
+  headers: {
+    'x-rapidapi-host': config.xrapidapihost,
+    'x-rapidapi-key': config.xrapidapikey
+  }
 };
 
 app.get('/publish', function (req, res) {
-  var twit = {status: 'Hoy no toca chiste.'};
-  http.request(options, function(res1) {
-    //console.log('STATUS: ' + res.statusCode);
-    //console.log('HEADERS: ' + JSON.stringify(res.headers));
+  var twit = {status: 'No info today'};
+  https.request(options, function(res1) {
     res1.setEncoding('utf8');
     res1.on('data', function (chunk) {
-      twit = {"status": chunk};
-      console.log(twit);
+      var jsonObject = JSON.parse(chunk);
+      var textToTwit = "COVID-19 " + jsonObject.response[0].country + " stats.\n";
+      textToTwit = textToTwit + "New cases: " + jsonObject.response[0].cases.new + "\n";
+      textToTwit = textToTwit + "Total cases: " + jsonObject.response[0].cases.total + "\n";
+      textToTwit = textToTwit + "New deaths: " + jsonObject.response[0].deaths.new + "\n";
+      textToTwit = textToTwit + "Total deaths: " + jsonObject.response[0].deaths.total;
+      console.log(textToTwit);
+      twit = {"status": textToTwit};
       T.post('statuses/update', twit,  function(error, tweet, response) {
         if (error) {
           res.send(error);
@@ -32,9 +40,8 @@ app.get('/publish', function (req, res) {
       });
     });
   }).end();
-
 });
 
-app.listen(3001, function () {
+app.listen(3000, function () {
     console.log('Example app listening on port 3000!');
 });
