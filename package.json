@@ -1,5 +1,5 @@
 {
-  "name": "twitter-bot",
+  "name": "twitter-bot-covid19",
   "version": "1.0.0",
   "description": "Nodejs Twitter Bot",
   "main": "app.js",
