@@ -43,15 +43,41 @@ app.get('/publish', function (req, res) {
           // Post a tweet
           T.post('statuses/update', twit,  function(error, tweet, response) {
             if (error) {
-              res.send(error);
-            } else {
-              res.send('Done');
+              console.log(error);
             }
           });
         });
       });
     }).end();
   });
+  res.send('Done');
+});
+
+app.get('/publishTest1', function (req, res) {
+  var twit = {status: 'No info today'};
+  countries_to_twit = ["Spain", "USA"];
+  countries_to_twit.forEach(element => {
+    options.path = '/statistics?country=' + element;
+    //retrieve stats from RapidAPI
+    https.request(options, function(res1) {
+      res1.setEncoding('utf8');
+      res1.on('data', function (chunk) {
+        console.log(chunk);
+        var jsonObject = JSON.parse(chunk);
+        jsonObject.response.forEach(response => {
+          var textToTwit = "COVID-19 " + response.country + " stats\n\n";
+          textToTwit = textToTwit + "New cases: " + response.cases.new + "\n";
+          textToTwit = textToTwit + "Total cases: " + response.cases.total + "\n";
+          textToTwit = textToTwit + "New deaths: " + response.deaths.new + "\n";
+          textToTwit = textToTwit + "Total deaths: " + response.deaths.total;
+          console.log(textToTwit);
+          twit = {"status": textToTwit};
+          // Post a tweet
+        });
+      });
+    }).end();
+  });
+  res.send('Done');
 });
 
 app.get('/publishTest', function (req, res) {
@@ -60,9 +86,9 @@ app.get('/publishTest', function (req, res) {
   console.log(jsonObject);
   res.send('Done');
 });
-
+/*
 app.listen(3000, function () {
     console.log('Example app listening on port 3000!');
 });
-
+*/
 exports.app = functions.https.onRequest(app);
